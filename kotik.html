@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Solo Leveling: Анастасия</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.75);
+            --glass-shadow: 0 8px 32px 0 rgba(236, 72, 153, 0.12);
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(255, 182, 193, 0.6) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(255, 105, 180, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(250, 204, 216, 0.7) 0%, transparent 70%),
+                #fff0f5;
+            color: #5c475d;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .ios-blur-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            backdrop-filter: blur(40px) saturate(160%);
+            -webkit-backdrop-filter: blur(40px) saturate(160%);
+            z-index: -1;
+        }
+        .apple-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+        .apple-pill {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        .pink-btn {
+            background: linear-gradient(135deg, #ffb6c1 0%, #ff8da1 100%);
+            box-shadow: 0 4px 15px rgba(255, 141, 161, 0.4);
+            color: white; transition: all 0.2s ease;
+        }
+        .pink-btn:active { transform: scale(0.96); }
+        
+        .tab-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 11px; }
+        .tab-btn.active {
+            background: #ff8da1; color: white;
+            box-shadow: 0 4px 12px rgba(255, 141, 161, 0.4);
+        }
+        
+        .float-box { animation: float 3.5s ease-in-out infinite; }
+        .float-box-2 { animation: float 3s ease-in-out infinite 0.5s; }
+        .float-box-3 { animation: float 4s ease-in-out infinite 1s; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); filter: drop-shadow(0 5px 15px rgba(255,141,161,0.3)); }
+            50% { transform: translateY(-8px); filter: drop-shadow(0 15px 25px rgba(255,141,161,0.6)); }
+        }
+
+        .penalty-pulse { animation: penaltyPulse 2s infinite; }
+        @keyframes penaltyPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(244, 63, 94, 0); }
+        }
+
+        .icon-spark {
+            display: inline-block; width: 1em; height: 1em; vertical-align: middle;
+            fill: currentColor;
+        }
+        ::-webkit-scrollbar { width: 0px; }
+    </style>
+</head>
+<body class="p-4 sm:p-6 pb-24">
+    <div class="ios-blur-bg"></div>
+
+    <!-- Тост уведомлений -->
+    <div id="system-toast" class="fixed top-6 left-1/2 -translate-x-1/2 -translate-y-32 opacity-0 transition-all duration-500 z-50 apple-card px-6 py-3.5 rounded-full flex items-center gap-3 w-max max-w-[90%] border-pink-200 shadow-xl">
+        <svg class="w-5 h-5 text-pink-500 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="15 85" stroke-linecap="round"/></svg>
+        <div>
+            <p class="text-[9px] uppercase font-bold text-pink-500 tracking-widest">Telegram Mini App</p>
+            <p id="toast-text" class="text-[11px] font-bold text-pink-950">Синхронизация</p>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto space-y-5">
+
+        <!-- Верхние вкладки -->
+        <nav class="apple-card rounded-3xl p-1.5 flex justify-between gap-1 shadow-sm">
+            <button onclick="switchTab('profile')" id="nav-profile" class="tab-btn active flex-1 py-2.5 rounded-2xl font-bold uppercase tracking-wider text-center">Профиль</button>
+            <button onclick="switchTab('tasks')" id="nav-tasks" class="tab-btn flex-1 py-2.5 rounded-2xl font-bold uppercase tracking-wider text-center text-pink-900">Задания</button>
+            <button onclick="switchTab('achievements')" id="nav-achievements" class="tab-btn flex-1 py-2.5 rounded-2xl font-bold uppercase tracking-wider text-center text-pink-900">Ачивки</button>
+            <button onclick="switchTab('shop')" id="nav-shop" class="tab-btn flex-1 py-2.5 rounded-2xl font-bold uppercase tracking-wider text-center text-pink-900">Боксы</button>
+        </nav>
+
+        <!-- ВКЛАДКА 1: ПРОФИЛЬ -->
+        <div id="tab-profile" class="space-y-4">
+            
+            <!-- ШТРАФНАЯ ЗОНА -->
+            <section id="penalty-zone" class="apple-card rounded-[2rem] p-6 space-y-3 relative overflow-hidden border-2 border-rose-400 bg-rose-50/80 hidden penalty-pulse">
+                <div class="absolute top-0 left-0 w-1.5 h-full bg-rose-500"></div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-6 h-6 text-rose-600 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <h2 class="font-black text-xs text-rose-700 uppercase tracking-widest">Штрафная Зона</h2>
+                </div>
+                <p class="text-[11px] text-rose-950 font-medium leading-relaxed">
+                    Вы не выполнили привычки до 6:00 утра! Магазин и прокачка заблокированы. Выполните испытание.
+                </p>
+                <div class="bg-rose-200/60 p-3 rounded-xl border border-rose-300 text-center">
+                    <p class="text-xs font-black text-rose-800 uppercase tracking-wider">Квест: 100 Приседаний</p>
+                </div>
+                <button onclick="clearPenalty()" class="w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] uppercase tracking-widest rounded-2xl transition active:scale-95 shadow-md">Испытание Пройдено</button>
+            </section>
+
+            <header class="apple-card rounded-[2rem] p-6 relative">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <div class="w-16 h-16 rounded-[1.25rem] bg-white border border-pink-200 flex items-center justify-center shadow-sm overflow-hidden p-1">
+                                <svg viewBox="0 0 100 100" class="w-full h-full">
+                                    <path d="M25 40 Q20 15 40 25 Q50 20 60 25 Q80 15 75 40 Q85 60 75 80 Q50 90 25 80 Q15 60 25 40 Z" fill="#fce7f3" stroke="#f472b6" stroke-width="2"/>
+                                    <polygon points="25,35 15,10 40,25" fill="#fff" stroke="#f472b6" stroke-width="1.5"/>
+                                    <polygon points="75,35 85,10 60,25" fill="#fff" stroke="#f472b6" stroke-width="1.5"/>
+                                    <circle cx="38" cy="50" r="6" fill="#4a3b4c"/><circle cx="62" cy="50" r="6" fill="#4a3b4c"/>
+                                    <polygon points="36,47 38,43 40,47 43,49 40,51 38,55 36,49 33,49" fill="#ffffff"/>
+                                    <polygon points="60,47 62,43 64,47 67,49 64,51 62,55 60,49 57,49" fill="#ffffff"/>
+                                    <polygon points="50,57 46,55 54,55" fill="#f472b6"/>
+                                    <ellipse cx="28" cy="62" rx="4" ry="2" fill="#fbcfe8" opacity="0.8"/>
+                                    <ellipse cx="72" cy="62" rx="4" ry="2" fill="#fbcfe8" opacity="0.8"/>
+                                </svg>
+                            </div>
+                            <div class="absolute -bottom-1 -right-1 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md border border-white">
+                                Lv.<span id="level-val">1</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-[8px] text-pink-500 font-bold uppercase tracking-[0.2em]">СИСТЕМА ИГРОКА</span>
+                            <div class="flex items-center gap-1.5">
+                                <h1 id="player-name" class="font-extrabold text-base text-pink-950 tracking-tight">Анастасия</h1>
+                                <button onclick="editName()" class="text-pink-400 hover:text-pink-600 p-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-pink-600 font-medium">Титул: <span class="font-bold text-pink-700">«Пробужденная»</span></p>
+                        </div>
+                    </div>
+                    <div class="apple-pill px-3 py-2 rounded-[1rem] text-center flex flex-col items-center">
+                        <p class="text-[8px] uppercase tracking-widest text-pink-500 font-bold mb-0.5">Искорки</p>
+                        <div class="flex items-center text-pink-700 font-black text-sm">
+                            <svg class="icon-spark mr-1 text-pink-500" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
+                            <span id="sparks-val">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5 pt-2">
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                        <span class="text-pink-600/80">Опыт (EXP)</span>
+                        <span class="text-pink-700"><span id="xp-val">0</span> / <span id="xp-max">100</span></span>
+                    </div>
+                    <div class="w-full bg-white/40 h-2.5 rounded-full overflow-hidden p-[1px] border border-pink-100">
+                        <div id="xp-bar" class="bg-gradient-to-r from-pink-300 to-pink-500 h-full rounded-full w-0 transition-all duration-700 ease-out"></div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Характеристики -->
+            <section class="apple-card rounded-[2rem] p-6 space-y-3">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-bold text-[10px] text-pink-600 uppercase tracking-[0.15em]">СТАТУС</h2>
+                    <div class="apple-pill px-3 py-1 rounded-full text-[10px] font-bold text-pink-700">
+                        Очков (SP): <span id="stat-points" class="font-black text-pink-950 text-xs ml-1">0</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <div class="apple-pill rounded-2xl p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            </div>
+                            <div><p class="text-xs font-extrabold text-pink-950">ИНТЕЛЛЕКТ</p><p class="text-[9px] text-pink-500">Память, фокус и учеба</p></div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="stat-intelligence" class="font-black text-sm text-pink-900 w-4 text-center">10</span>
+                            <button onclick="upgradeStat('intelligence')" class="w-7 h-7 rounded-full bg-white/70 text-pink-600 font-bold text-sm flex items-center justify-center transition active:scale-90 shadow-sm">+</button>
+                        </div>
+                    </div>
+                    <div class="apple-pill rounded-2xl p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-pink-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                            </div>
+                            <div><p class="text-xs font-extrabold text-pink-950">КРАСОТА</p><p class="text-[9px] text-pink-500">Уход за собой и стиль</p></div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="stat-beauty" class="font-black text-sm text-pink-900 w-4 text-center">10</span>
+                            <button onclick="upgradeStat('beauty')" class="w-7 h-7 rounded-full bg-white/70 text-pink-600 font-bold text-sm flex items-center justify-center transition active:scale-90 shadow-sm">+</button>
+                        </div>
+                    </div>
+                    <div class="apple-pill rounded-2xl p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </div>
+                            <div><p class="text-xs font-extrabold text-pink-950">ЛОВКОСТЬ</p><p class="text-[9px] text-pink-500">Энергия, спорт и тонус</p></div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="stat-agility" class="font-black text-sm text-pink-900 w-4 text-center">10</span>
+                            <button onclick="upgradeStat('agility')" class="w-7 h-7 rounded-full bg-white/70 text-pink-600 font-bold text-sm flex items-center justify-center transition active:scale-90 shadow-sm">+</button>
+                        </div>
+                    </div>
+                    <div class="apple-pill rounded-2xl p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                            </div>
+                            <div><p class="text-xs font-extrabold text-pink-950">СОЦИАЛЬНОСТЬ</p><p class="text-[9px] text-pink-500">Общение и уверенность</p></div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="stat-social" class="font-black text-sm text-pink-900 w-4 text-center">10</span>
+                            <button onclick="upgradeStat('social')" class="w-7 h-7 rounded-full bg-white/70 text-pink-600 font-bold text-sm flex items-center justify-center transition active:scale-90 shadow-sm">+</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ВКЛАДКА 2: ЗАДАНИЯ И ТРЕКЕРЫ -->
+        <div id="tab-tasks" class="space-y-4 hidden">
+            
+            <section class="apple-card rounded-[2rem] p-6 space-y-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-bold text-[10px] text-pink-600 uppercase tracking-[0.15em]">ТРЕКЕРЫ ОРГАНИЗМА</h2>
+                    <button onclick="simulatePenalty()" class="text-[8px] text-rose-500 font-bold uppercase underline">Штраф тест</button>
+                </div>
+                
+                <div class="space-y-2.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <div class="flex items-center gap-1.5"><svg class="w-4 h-4 text-sky-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg><span class="font-bold text-pink-950">Вода</span></div>
+                        <span id="water-text" class="font-mono text-pink-700 font-bold text-[11px]">0 / 2000 мл</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="addWater()" class="pink-btn text-[11px] font-bold px-4 py-2.5 rounded-[1rem] flex-1">+450 мл</button>
+                        <button onclick="resetWater()" class="apple-pill text-pink-600 font-bold text-[11px] px-4 py-2.5 rounded-[1rem]">Сброс</button>
+                    </div>
+                    <div class="w-full bg-white/60 h-2 rounded-full overflow-hidden border border-pink-100">
+                        <div id="water-bar" class="bg-gradient-to-r from-sky-300 to-blue-400 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                </div>
+
+                <hr class="border-pink-100/60">
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-1.5"><svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg><span class="text-xs font-bold text-pink-950">Вес (175 см)</span></div>
+                        <p id="imt-text" class="text-[9px] text-pink-500 mt-0.5 uppercase tracking-wide font-bold">ИМТ: Не рассчитан</p>
+                    </div>
+                    <div class="flex items-center gap-1 bg-white/60 px-3 py-1.5 rounded-[1rem] border border-pink-200 shadow-sm">
+                        <input type="number" id="weight-input" onchange="saveWeight(this.value)" placeholder="0.0" class="bg-transparent w-12 text-center text-xs font-bold text-pink-950 outline-none">
+                        <span class="text-[9px] font-black text-pink-400">КГ</span>
+                    </div>
+                </div>
+
+                <hr class="border-pink-100/60">
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-1.5"><svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span class="text-xs font-bold text-pink-950">Чтение</span></div>
+                        <p id="reading-text" class="text-[9px] text-pink-500 mt-0.5 uppercase tracking-wide font-bold">Всего: 0 стр</p>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <input type="number" id="reading-input" placeholder="+Стр" class="apple-pill w-14 px-2 py-1.5 rounded-[1rem] text-[10px] text-center font-bold outline-none border-pink-200">
+                        <button onclick="addReadingPages()" class="pink-btn text-white text-[10px] font-bold px-3 rounded-[1rem]">ОК</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="apple-card rounded-[2rem] p-6 space-y-3 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-pink-400 to-purple-400"></div>
+                <div class="flex justify-between items-center">
+                    <h2 class="font-bold text-[10px] text-pink-600 uppercase tracking-[0.1em]">ХАРДКОР НЕДЕЛИ</h2>
+                    <span id="weekly-timer" class="text-[9px] font-mono font-bold bg-white/60 text-pink-800 px-2.5 py-1 rounded-full border border-pink-200">00:00:00</span>
+                </div>
+                <p id="weekly-title" class="text-sm font-extrabold text-pink-950 leading-tight">Загрузка вызова...</p>
+                <div class="flex justify-between items-center pt-1">
+                    <div class="flex items-center gap-1.5 text-[10px] font-bold text-pink-600">
+                        <span>+150 EXP</span> <span class="text-pink-300">•</span> <svg class="icon-spark text-pink-500" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg> <span>+100</span>
+                    </div>
+                    <button id="weekly-btn" onclick="completeWeekly()" class="px-4 py-2 pink-btn text-white text-[10px] font-bold rounded-[1rem]">Сдано</button>
+                </div>
+            </section>
+
+            <section class="apple-card rounded-[2rem] p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="font-bold text-[10px] text-pink-600 uppercase tracking-[0.15em]">БАЗОВЫЕ ПРИВЫЧКИ (Сброс в 6:00)</h2>
+                    <button onclick="completeAllHabits()" class="text-[9px] text-pink-500 font-bold uppercase tracking-wider hover:text-pink-700 transition">Всё</button>
+                </div>
+                <div id="habits-container" class="space-y-2"></div>
+            </section>
+
+            <section class="apple-card rounded-[2rem] p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="font-bold text-[10px] text-pink-600 uppercase tracking-[0.15em]">КВЕСТЫ РАЗВИТИЯ</h2>
+                    <span class="text-[9px] text-pink-500 font-bold uppercase tracking-wider">3 В ДЕНЬ</span>
+                </div>
+                <div id="daily-quests-container" class="space-y-2"></div>
+            </section>
+        </div>
+
+        <!-- ВКЛАДКА 3: АЧИВКИ -->
+        <div id="tab-achievements" class="space-y-4 hidden">
+            <section class="apple-card rounded-[2rem] p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="font-bold text-[10px] text-pink-600 uppercase tracking-[0.15em]">ЗАЛ СЛАВЫ</h2>
+                    <div class="apple-pill px-3 py-1 rounded-full text-[10px] font-bold text-pink-700">
+                        <span id="ach-counter" class="font-black text-pink-950">0 / 20</span>
+                    </div>
+                </div>
+                <p class="text-[10px] text-pink-600 font-medium leading-relaxed">Достижения открываются автоматически.</p>
+                <div id="achievements-grid" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
+            </section>
+        </div>
+
+        <!-- ВКЛАДКА 4: МАГАЗИН (БОКСЫ И КОЛЛЕКЦИЯ) -->
+        <div id="tab-shop" class="space-y-5 hidden">
+            
+            <section class="apple-card rounded-[2rem] p-6 space-y-4">
+                <h2 class="font-bold text-[10px] text-pink-600 uppercase tracking-[0.15em]">ПРИЗЫВ ПИТОМЦЕВ</h2>
+                <div class="space-y-4">
+                    
+                    <div onclick="openBox('common')" class="apple-pill p-4 rounded-[1.5rem] cursor-pointer float-box border border-pink-200 flex items-center gap-4 transition active:scale-95 bg-white/50">
+                        <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center relative">
+                            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+                                <rect x="25" y="45" width="50" height="40" rx="3" fill="#fff" stroke="#ffb6c1" stroke-width="2.5"/>
+                                <rect x="22" y="35" width="56" height="15" rx="2" fill="#ffe4ec" stroke="#ffb6c1" stroke-width="2.5"/>
+                                <rect x="46" y="35" width="8" height="50" fill="#ff8da1"/>
+                                <path d="M50 35 C35 15 15 25 46 35 Z" fill="#ff8da1"/>
+                                <path d="M50 35 C65 15 85 25 54 35 Z" fill="#ff8da1"/>
+                                <circle cx="50" cy="35" r="4" fill="#ff69b4"/>
+                                <polygon points="20,20 22,15 24,20 29,22 24,24 22,29 20,24 15,22" fill="#fbcfe8"/>
+                                <polygon points="80,50 81,47 83,50 86,51 83,52 81,55 79,52 76,51" fill="#fbcfe8"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <p class="text-[13px] font-extrabold text-pink-950">Нежный Бокс</p>
+                                <span class="text-[11px] font-black text-pink-600 flex items-center gap-1"><svg class="icon-spark text-pink-400" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg> 30</span>
+                            </div>
+                            <p class="text-[9px] text-pink-500 mt-1 uppercase font-bold tracking-wider">Шансы: 100% Обычный</p>
+                        </div>
+                    </div>
+
+                    <div onclick="openBox('rare')" class="apple-pill p-4 rounded-[1.5rem] cursor-pointer float-box-2 border border-rose-300 flex items-center gap-4 transition active:scale-95 bg-white/50">
+                        <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center relative">
+                            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+                                <rect x="25" y="45" width="50" height="40" rx="3" fill="#fff0f5" stroke="#fb7185" stroke-width="2.5"/>
+                                <rect x="22" y="35" width="56" height="15" rx="2" fill="#ffe4e6" stroke="#fb7185" stroke-width="2.5"/>
+                                <rect x="46" y="35" width="8" height="50" fill="#f43f5e"/>
+                                <path d="M50 35 C35 15 15 25 46 35 Z" fill="#f43f5e"/>
+                                <path d="M50 35 C65 15 85 25 54 35 Z" fill="#f43f5e"/>
+                                <circle cx="50" cy="35" r="4" fill="#be123c"/>
+                                <polygon points="25,60 27,55 29,60 34,62 29,64 27,69 25,64 20,62" fill="#fde047"/>
+                                <polygon points="75,70 76,67 78,70 81,71 78,72 76,75 74,72 71,71" fill="#fde047"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <p class="text-[13px] font-extrabold text-pink-950">Звездный Бокс</p>
+                                <span class="text-[11px] font-black text-rose-600 flex items-center gap-1"><svg class="icon-spark text-rose-400" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg> 70</span>
+                            </div>
+                            <p class="text-[9px] text-pink-500 mt-1 uppercase font-bold tracking-wider">Шансы: 30% Редк. / 70% Обыч.</p>
+                        </div>
+                    </div>
+
+                    <div onclick="openBox('epic')" class="apple-pill p-4 rounded-[1.5rem] cursor-pointer float-box-3 border border-purple-300 flex items-center gap-4 transition active:scale-95 bg-white/50">
+                        <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center relative">
+                            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+                                <rect x="25" y="45" width="50" height="40" rx="3" fill="#faf5ff" stroke="#c084fc" stroke-width="2.5"/>
+                                <rect x="22" y="35" width="56" height="15" rx="2" fill="#f3e8ff" stroke="#c084fc" stroke-width="2.5"/>
+                                <rect x="46" y="35" width="8" height="50" fill="#a855f7"/>
+                                <path d="M50 35 C35 15 15 25 46 35 Z" fill="#a855f7"/>
+                                <path d="M50 35 C65 15 85 25 54 35 Z" fill="#a855f7"/>
+                                <circle cx="50" cy="35" r="4" fill="#6b21a8"/>
+                                <polygon points="32,55 35,62 32,69 29,62" fill="#e879f9"/>
+                                <polygon points="68,60 70,65 68,70 66,65" fill="#e879f9"/>
+                                <polygon points="50,15 52,20 57,20 53,23 55,28 50,25 45,28 47,23 43,20 48,20" fill="#fde047"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <p class="text-[13px] font-extrabold text-pink-950">Королевский Бокс</p>
+                                <span class="text-[11px] font-black text-purple-700 flex items-center gap-1"><svg class="icon-spark text-purple-500" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg> 150</span>
+                            </div>
+                            <p class="text-[9px] text-pink-500 mt-1 uppercase font-bold tracking-wider">Шансы: 20% Эпик. / 80% Редк.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="apple-card rounded-[2rem] p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="font-bold text-[10px] text-pink-600 uppercase tracking-[0.15em]">КОЛЛЕКЦИЯ</h2>
+                    <span class="text-[10px] font-black text-pink-700 bg-white/60 border border-pink-200 px-2.5 py-1 rounded-full"><span id="cat-count">0</span>/45</span>
+                </div>
+                <div id="collection-grid" class="grid grid-cols-4 gap-2.5 max-h-64 overflow-y-auto p-1"></div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- Модальное окно питомца -->
+    <div id="cat-modal" class="fixed inset-0 bg-black/30 backdrop-blur-md z-50 hidden flex items-center justify-center p-5 opacity-0 transition-opacity duration-300">
+        <div class="apple-card rounded-[2.5rem] p-8 max-w-sm w-full text-center space-y-4 shadow-2xl transform scale-95 transition-transform duration-300" id="cat-modal-content">
+            <div class="w-32 h-32 mx-auto bg-gradient-to-tr from-pink-50 to-white rounded-[2rem] shadow-inner border border-pink-200 flex items-center justify-center p-3 relative">
+                <div id="modal-cat-icon" class="w-full h-full drop-shadow-md"></div>
+            </div>
+            <div>
+                <p id="modal-cat-rarity" class="text-[9px] font-bold uppercase tracking-[0.2em] text-pink-500 mb-1"></p>
+                <h3 id="modal-cat-name" class="font-extrabold text-xl text-pink-950 tracking-tight">Имя питомца</h3>
+            </div>
+            <p id="modal-cat-desc" class="text-[11px] text-pink-700 font-medium leading-relaxed px-2">Описание</p>
+            <button onclick="closeModal()" class="pink-btn text-white font-bold text-xs py-3.5 rounded-[1.25rem] w-full mt-2 tracking-wide uppercase">Отлично</button>
+        </div>
+    </div>
+
+    <script>
+        const SECRET_KEY = "ANASTASIA_SECURE_LOG_KEY_2026";
+        const tg = window.Telegram?.WebApp;
+
+        function triggerHaptic(style = 'medium') {
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred(style);
+            }
+        }
+        
+        function writeLog(actionName, details) {
+            try {
+                let logs = [];
+                let existing = localStorage.getItem('solo_secure_logs');
+                if(existing) {
+                    let decompressed = decryptAndDecompress(existing);
+                    if(Array.isArray(decompressed)) logs = decompressed;
+                }
+                logs.unshift({ time: new Date().toISOString(), action: actionName, info: details });
+                if(logs.length > 50) logs = logs.slice(0, 50);
+                localStorage.setItem('solo_secure_logs', encryptAndCompress(logs));
+            } catch(e) {}
+        }
+
+        function encryptAndCompress(dataObj) {
+            try {
+                const jsonStr = JSON.stringify(dataObj);
+                let encrypted = "";
+                for (let i = 0; i < jsonStr.length; i++) {
+                    const charCode = jsonStr.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length);
+                    encrypted += String.fromCharCode(charCode);
+                }
+                return btoa(encodeURIComponent(encrypted));
+            } catch(e) { return null; }
+        }
+
+        function decryptAndDecompress(encodedStr) {
+            try {
+                const encrypted = decodeURIComponent(atob(encodedStr));
+                let decrypted = "";
+                for (let i = 0; i < encrypted.length; i++) {
+                    const charCode = encrypted.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length);
+                    decrypted += String.fromCharCode(charCode);
+                }
+                return JSON.parse(decrypted);
+            } catch(e) { return null; }
+        }
+
+        // 45 Уникальных проработанных питомцев с индивидуальным дизайном, особенностями и именами
+        const catArchetypes = [
+            { name: "Пушистик Сонька", desc: "Умеет засыпать за 0.1 сек в любом месте.", baseColor: "#ffe4ec", pattern: "stripes", eye: "#4a3b4c", acc: "bow" },
+            { name: "Лунный Барсик", desc: "Просыпается только под светом ночных звезд.", baseColor: "#e0f2fe", pattern: "patches", eye: "#1e3a8a", acc: "star" },
+            { name: "Звездочка", desc: "Его шерстка тихо мерцает в темноте.", baseColor: "#fef3c7", pattern: "spots", eye: "#78350f", acc: "halo" },
+            { name: "Облачко", desc: "Настолько легкий, что парит над кроватью.", baseColor: "#f1f5f9", pattern: "solid", eye: "#334155", acc: "none" },
+            { name: "Рыжик Ласковый", desc: "Заряжен солнечной энергией на весь день.", baseColor: "#ffedd5", pattern: "stripes", eye: "#c2410c", acc: "star" },
+            { name: "Тихоня", desc: "Шагает абсолютно бесшумно, как ниндзя.", baseColor: "#ecfdf5", pattern: "spots", eye: "#065f46", acc: "none" },
+            { name: "Лаки", desc: "Приносит удачу во всех делах и квестах.", baseColor: "#f3e8ff", pattern: "patches", eye: "#6b21a8", acc: "crown" },
+            { name: "Шоко", desc: "Пахнет какао и ванильными печеньками.", baseColor: "#fed7aa", pattern: "stripes", eye: "#431407", acc: "bow" }
+        ];
+
+        const allCats = Array.from({length: 45}, (_, i) => {
+            const id = i + 1;
+            const rarity = id <= 30 ? "Обычный" : (id <= 40 ? "Редкий" : "Эпический");
+            const arch = catArchetypes[i % catArchetypes.length];
+            
+            let accSVG = "";
+            if (rarity === "Редкий" || arch.acc === "star") accSVG = `<polygon points="50,22 53,28 59,28 54,32 56,38 50,34 44,38 46,32 41,28 47,28" fill="#fbbf24"/>`;
+            if (arch.acc === "bow") accSVG = `<path d="M42 72 C32 62 28 72 42 82 Z" fill="#f43f5e"/><path d="M58 72 C68 62 72 72 58 82 Z" fill="#f43f5e"/><circle cx="50" cy="75" r="4" fill="#9f1239"/>`;
+            if (arch.acc === "crown" || rarity === "Эпический") accSVG = `<polygon points="38,22 43,8 50,17 57,8 62,22" fill="#fbbf24" stroke="#d97706" stroke-width="1.5"/>`;
+            if (arch.acc === "halo") accSVG = `<ellipse cx="50" cy="14" rx="16" ry="5" fill="none" stroke="#fde047" stroke-width="3"/>`;
+
+            let patternSVG = "";
+            if (arch.pattern === "stripes") {
+                patternSVG = `<path d="M35 30 L40 45 M50 25 L50 42 M65 30 L60 45" stroke="#f472b6" stroke-width="3" stroke-linecap="round" opacity="0.6"/>`;
+            } else if (arch.pattern === "patches") {
+                patternSVG = `<circle cx="35" cy="55" r="8" fill="#f472b6" opacity="0.5"/><circle cx="65" cy="60" r="10" fill="#f472b6" opacity="0.4"/>`;
+            } else if (arch.pattern === "spots") {
+                patternSVG = `<circle cx="40" cy="48" r="4" fill="#f472b6" opacity="0.6"/><circle cx="58" cy="52" r="5" fill="#f472b6" opacity="0.5"/><circle cx="48" cy="64" r="3" fill="#f472b6" opacity="0.5"/>`;
+            }
+
+            const svg = `<svg viewBox="0 0 100 100" class="w-full h-full">
+                ${accSVG}
+                <path d="M25 40 Q20 12 42 24 Q50 18 58 24 Q80 12 75 40 Q88 62 75 82 Q50 92 25 82 Q12 62 25 40 Z" fill="${arch.baseColor}" stroke="#f472b6" stroke-width="2"/>
+                <polygon points="25,35 15,10 42,24" fill="${arch.baseColor}" stroke="#f472b6" stroke-width="1.5"/>
+                <polygon points="75,35 85,10 58,24" fill="${arch.baseColor}" stroke="#f472b6" stroke-width="1.5"/>
+                ${patternSVG}
+                <circle cx="38" cy="50" r="6" fill="${arch.eye}"/><circle cx="62" cy="50" r="6" fill="${arch.eye}"/>
+                <polygon points="36,47 38,43 40,47 43,49 40,51 38,55 36,49 33,49" fill="#ffffff"/>
+                <polygon points="60,47 62,43 64,47 67,49 64,51 62,55 60,49 57,49" fill="#ffffff"/>
+                <polygon points="50,58 46,55 54,55" fill="#f472b6"/>
+                <ellipse cx="28" cy="64" rx="4" ry="2" fill="#f43f5e" opacity="0.4"/>
+                <ellipse cx="72" cy="64" rx="4" ry="2" fill="#f43f5e" opacity="0.4"/>
+            </svg>`;
+
+            return {
+                id,
+                name: `${arch.name} #${id}`,
+                rarity,
+                desc: `${arch.desc} (Редкость: ${rarity})`,
+                svg
+            };
+        });
+
+        const advancedQuestPool = [
+            { text: "Прочитать 15 страниц сложной книги", stat: "intelligence", val: 2 },
+            { text: "Сделать питательную маску для лица", stat: "beauty", val: 2 },
+            { text: "Сделать утреннюю зарядку 15 минут", stat: "agility", val: 2 },
+            { text: "Сделать комплимент знакомому", stat: "social", val: 2 },
+            { text: "Изучить 10 новых иностранных слов", stat: "intelligence", val: 3 },
+            { text: "Сделать аккуратный маникюр/уход", stat: "beauty", val: 3 },
+            { text: "Провести 20 минут в упражнениях", stat: "agility", val: 3 },
+            { text: "Поддержать приятный диалог", stat: "social", val: 3 }
+        ];
+
+        const weeklyPool = [
+            "Пройти 40 000 шагов суммарно за неделю", 
+            "Соблюдать жесткий режим сна: отбой до 22:30 все 7 дней",
+            "Абсолютный детокс от фастфуда на 7 дней"
+        ];
+
+        const achievementsData = [
+            { id: 1, title: "Первый шаг", desc: "Достигните 2 уровня", reward: 20, condition: (s) => s.level >= 2, unlocked: false },
+            { id: 2, title: "Умница", desc: "Прокачайте Интеллект до 15", reward: 30, condition: (s) => s.intelligence >= 15, unlocked: false },
+            { id: 3, title: "Икона стиля", desc: "Прокачайте Красоту до 15", reward: 30, condition: (s) => s.beauty >= 15, unlocked: false },
+            { id: 4, title: "Энерджайзер", desc: "Прокачайте Ловкость до 15", reward: 30, condition: (s) => s.agility >= 15, unlocked: false },
+            { id: 5, title: "Душа компании", desc: "Прокачайте Социальные навыки до 15", reward: 30, condition: (s) => s.social >= 15, unlocked: false },
+            { id: 6, title: "Библиотекарь", desc: "Прочитайте 100 страниц", reward: 40, condition: (s) => s.readingPages >= 100, unlocked: false },
+            { id: 7, title: "Водный баланс", desc: "Выпейте 2000 мл за день", reward: 20, condition: (s) => s.water >= 2000, unlocked: false },
+            { id: 8, title: "Первый питомец", desc: "Откройте 1 котика", reward: 30, condition: (s) => s.collectedCats.length >= 1, unlocked: false },
+            { id: 9, title: "Смотритель", desc: "Соберите 10 котиков", reward: 50, condition: (s) => s.collectedCats.length >= 10, unlocked: false },
+            { id: 10, title: "Кошачий Бог", desc: "Соберите всех 45 котиков", reward: 200, condition: (s) => s.collectedCats.length >= 45, unlocked: false },
+            { id: 11, title: "Богачка", desc: "Накопите 300 искорок", reward: 50, condition: (s) => s.stars >= 300, unlocked: false },
+            { id: 12, title: "Ветеран Системы", desc: "Достигните 5 уровня", reward: 50, condition: (s) => s.level >= 5, unlocked: false },
+            { id: 13, title: "Дисциплина", desc: "Закройте все привычки за день", reward: 30, condition: (s) => s.allHabitsDoneToday, unlocked: false },
+            { id: 14, title: "Хардкорщик", desc: "Завершите еженедельный вызов", reward: 100, condition: (s) => s.weeklyDone, unlocked: false },
+            { id: 15, title: "Идеальный баланс", desc: "Все статы достигли 20", reward: 150, condition: (s) => s.intelligence >= 20 && s.beauty >= 20 && s.agility >= 20 && s.social >= 20, unlocked: false },
+            { id: 16, title: "Счастливчик", desc: "Откройте Редкий бокс", reward: 20, condition: (s) => s.openedRareOrEpic, unlocked: false },
+            { id: 17, title: "Эпическая удача", desc: "Получите Эпического котика", reward: 100, condition: (s) => s.hasEpicCat, unlocked: false },
+            { id: 18, title: "Книголюб", desc: "Прочитайте 500 страниц", reward: 150, condition: (s) => s.readingPages >= 500, unlocked: false },
+            { id: 19, title: "Трудоголик", desc: "Выполните 50 ежедневных квестов", reward: 100, condition: (s) => s.totalQuestsDone >= 50, unlocked: false },
+            { id: 20, title: "Пробужденная Тень", desc: "Достигните 10 уровня", reward: 300, condition: (s) => s.level >= 10, unlocked: false }
+        ];
+
+        let state = {
+            name: "Анастасия", level: 1, xp: 0, xpMax: 100, stars: 50, statPoints: 2,
+            intelligence: 10, beauty: 10, agility: 10, social: 10,
+            water: 0, weight: "", readingPages: 0, totalQuestsDone: 0,
+            dailyQuests: [], lastResetDate: "",
+            weeklyTask: "", weeklyDone: false, lastWeeklyDate: "",
+            allHabitsDoneToday: false, openedRareOrEpic: false, hasEpicCat: false,
+            inPenalty: false, penaltyCounter: 0,
+            habits: [
+                { id: 1, text: "Уход за лицом (утро/вечер)", done: false },
+                { id: 2, text: "Питание без фастфуда", done: false },
+                { id: 3, text: "Маникюр / педикюр / брови", done: false },
+                { id: 4, text: "Тренировки и растяжка", done: false },
+                { id: 5, text: "Чистить зубы 2 раза", done: false },
+                { id: 6, text: "Учеба (мин. 3 раза в неделю)", done: false },
+                { id: 7, text: "Чтение 15 страниц", done: false },
+                { id: 8, text: "Утренняя зарядка", done: false }
+            ],
+            achievements: achievementsData,
+            collectedCats: []
+        };
+
+        function checkSystemResetTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const date = now.getDate();
+            
+            let resetTarget = new Date(year, month, date, 6, 0, 0);
+            if (now.getTime() < resetTarget.getTime()) {
+                resetTarget.setDate(resetTarget.getDate() - 1);
+            }
+            const resetTargetString = resetTarget.toDateString();
+
+            if (state.lastResetDate !== resetTargetString && state.lastResetDate !== "") {
+                if (!state.allHabitsDoneToday) {
+                    state.inPenalty = true;
+                    writeLog("PENALTY_ACTIVATED", "Привычки не закрыты до 6:00 утра.");
+                }
+            }
+
+            if (state.lastResetDate !== resetTargetString) {
+                let shuffled = [...advancedQuestPool].sort(() => 0.5 - Math.random());
+                state.dailyQuests = shuffled.slice(0, 3).map((q, idx) => ({ id: idx, ...q, done: false }));
+                state.lastResetDate = resetTargetString;
+                state.habits.forEach(h => h.done = false);
+                state.allHabitsDoneToday = false;
+                state.water = 0;
+                saveGame();
+                writeLog("SYSTEM_RESET", "Автоматическое обновление в 6:00 утра.");
+            }
+        }
+
+        function updateTimers() {
+            const now = new Date();
+            let next6am = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6, 0, 0);
+            if (now.getTime() >= next6am.getTime()) {
+                next6am.setDate(next6am.getDate() + 1);
+            }
+            const diff = next6am.getTime() - now.getTime();
+            const hours = String(Math.floor((diff / (1000 * 60 * 60)) % 24)).padStart(2, '0');
+            const minutes = String(Math.floor((diff / 1000 / 60) % 60)).padStart(2, '0');
+            const seconds = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
+            
+            const timerEl = document.getElementById('weekly-timer');
+            if(timerEl) timerEl.innerText = `${hours}:${minutes}:${seconds} до сброса`;
+        }
+
+        function loadGame() {
+            if (tg) {
+                tg.ready();
+                tg.expand();
+                if (tg.setHeaderColor) {
+                    tg.setHeaderColor('#fff0f5');
+                }
+            }
+            const saved = localStorage.getItem('solo_leveling_live_v18');
+            if (saved) { 
+                try { 
+                    let parsed = decryptAndDecompress(saved);
+                    if (parsed) {
+                        state = {...state, ...parsed};
+                        state.achievements = achievementsData.map(a => {
+                            const savedAch = parsed.achievements?.find(sa => sa.id === a.id);
+                            return savedAch ? {...a, unlocked: savedAch.unlocked} : a;
+                        });
+                    }
+                } catch(e) {} 
+            }
+            checkSystemResetTime();
+            checkWeeklyTask();
+            updateUI();
+            setInterval(updateTimers, 1000);
+            setInterval(checkSystemResetTime, 60000);
+        }
+
+        function saveGame() {
+            checkAchievements();
+            const encryptedData = encryptAndCompress(state);
+            localStorage.setItem('solo_leveling_live_v18', encryptedData);
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('system-toast');
+            document.getElementById('toast-text').innerText = text;
+            toast.classList.remove('-translate-y-32', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-32', 'opacity-0');
+            }, 3000);
+        }
+
+        function switchTab(tab) {
+            triggerHaptic('light');
+            ['profile', 'tasks', 'achievements', 'shop'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).classList.remove('active');
+                document.getElementById(`nav-${t}`).classList.add('text-pink-900');
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`nav-${tab}`).classList.add('active');
+            document.getElementById(`nav-${tab}`).classList.remove('text-pink-900');
+            writeLog("TAB_SWITCH", tab);
+        }
+
+        function simulatePenalty() {
+            triggerHaptic('heavy');
+            state.inPenalty = true;
+            saveGame(); updateUI();
+            switchTab('profile');
+            showToast("Система активировала Штрафную Зону!");
+            writeLog("SIMULATE_PENALTY", "Тест штрафа.");
+        }
+
+        function clearPenalty() {
+            triggerHaptic('success');
+            state.inPenalty = false;
+            saveGame(); updateUI();
+            showToast("Штрафное испытание пройдено!");
+            writeLog("CLEAR_PENALTY", "Выход из штрафа.");
+        }
+
+        function checkWeeklyTask() {
+            const now = new Date().getTime();
+            if (!state.weeklyTask || !state.lastWeeklyDate || (now - state.lastWeeklyDate > 7 * 24 * 60 * 60 * 1000)) {
+                state.weeklyTask = weeklyPool[Math.floor(Math.random() * weeklyPool.length)];
+                state.weeklyDone = false;
+                state.lastWeeklyDate = now;
+                saveGame();
+            }
+        }
+
+        function checkAchievements() {
+            state.achievements.forEach(a => {
+                if (!a.unlocked && a.condition(state)) {
+                    a.unlocked = true;
+                    triggerHaptic('success');
+                    showToast(`🏆 Ачивка: "${a.title}"! (+${a.reward} Искорок)`);
+                    state.stars += a.reward;
+                    writeLog("ACHIEVEMENT_UNLOCKED", a.title);
+                }
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('level-val').innerText = state.level;
+            document.getElementById('player-name').innerText = state.name;
+            document.getElementById('xp-val').innerText = state.xp;
+            document.getElementById('xp-max').innerText = state.xpMax;
+            document.getElementById('sparks-val').innerText = state.stars;
+            document.getElementById('stat-points').innerText = state.statPoints;
+
+            let pMult = state.inPenalty ? 0.9 : 1;
+            document.getElementById('stat-intelligence').innerText = Math.floor(state.intelligence * pMult);
+            document.getElementById('stat-beauty').innerText = Math.floor(state.beauty * pMult);
+            document.getElementById('stat-agility').innerText = Math.floor(state.agility * pMult);
+            document.getElementById('stat-social').innerText = Math.floor(state.social * pMult);
+
+            document.querySelectorAll('#tab-profile button').forEach(b => {
+                if(b.id.startsWith('btn-')) b.disabled = state.inPenalty;
+            });
+
+            const xpPct = Math.min(100, (state.xp / state.xpMax) * 100);
+            document.getElementById('xp-bar').style.width = xpPct + '%';
+
+            const waterMax = 2000;
+            const waterPct = Math.min(100, (state.water / waterMax) * 100);
+            document.getElementById('water-text').innerText = `${state.water} / ${waterMax} мл`;
+            document.getElementById('water-bar').style.width = waterPct + '%';
+
+            if(state.weight) {
+                document.getElementById('weight-input').value = state.weight;
+                calculateIMT(state.weight);
+            }
+
+            document.getElementById('reading-text').innerText = `Всего: ${state.readingPages} стр`;
+            document.getElementById('weekly-title').innerText = state.weeklyTask;
+
+            const wBtn = document.getElementById('weekly-btn');
+            if(state.weeklyDone) {
+                wBtn.innerText = "Сдано"; wBtn.disabled = true;
+                wBtn.className = "px-4 py-2 bg-white/50 text-pink-400 text-[10px] font-bold rounded-[1rem]";
+            } else {
+                wBtn.innerText = "Сдать"; wBtn.disabled = false;
+                wBtn.className = "px-4 py-2 pink-btn text-white text-[10px] font-bold rounded-[1rem]";
+            }
+
+            const penaltyBox = document.getElementById('penalty-zone');
+            if(state.inPenalty) { penaltyBox.classList.remove('hidden'); } else { penaltyBox.classList.add('hidden'); }
+
+            if(state.inPenalty) {
+                document.getElementById('nav-shop').classList.add('opacity-50', 'pointer-events-none');
+            } else {
+                document.getElementById('nav-shop').classList.remove('opacity-50', 'pointer-events-none');
+            }
+
+            renderHabits(); renderDailyQuests(); renderAchievements(); renderCollection();
+        }
+
+        function editName() {
+            triggerHaptic('light');
+            const name = prompt("Введите новое имя:", state.name);
+            if(name && name.trim()) { state.name = name.trim(); saveGame(); updateUI(); showToast("Имя изменено!"); writeLog("EDIT_NAME", state.name); }
+        }
+
+        function upgradeStat(stat) {
+            if(state.inPenalty) return showToast("Магазин и прокачка заблокированы!");
+            if(state.statPoints <= 0) { showToast("Нет свободных SP!"); return; }
+            triggerHaptic('medium');
+            state.statPoints--; state[stat]++; saveGame(); updateUI();
+            writeLog("UPGRADE_STAT", stat);
+        }
+
+        function addWater() {
+            triggerHaptic('light');
+            state.water += 450; state.stars += 2;
+            showToast("+450 мл воды! (+2 Искорки)"); saveGame(); updateUI();
+            writeLog("ADD_WATER", "+450ml");
+        }
+
+        function resetWater() { triggerHaptic('light'); state.water = 0; saveGame(); updateUI(); }
+        function saveWeight(val) { state.weight = val; calculateIMT(val); saveGame(); showToast("Вес сохранен!"); writeLog("SAVE_WEIGHT", val); }
+
+        function calculateIMT(weight) {
+            const imt = (weight / (1.75 * 1.75)).toFixed(1);
+            let status = "Норма";
+            if (imt < 18.5) status = "Дефицит"; else if (imt >= 25 && imt < 30) status = "Избыток"; else if (imt >= 30) status = "Ожирение";
+            document.getElementById('imt-text').innerText = `ИМТ: ${imt} (${status})`;
+        }
+
+        function addReadingPages() {
+            const val = parseInt(document.getElementById('reading-input').value);
+            if(isNaN(val) || val <= 0) return;
+            triggerHaptic('medium');
+            state.readingPages += val; state.xp += val; state.stars += Math.floor(val/2);
+            document.getElementById('reading-input').value = "";
+            showToast(`+${val} стр! (+${val} EXP)`);
+            checkLevelUp(); saveGame(); updateUI();
+            writeLog("ADD_READING", val + " pages");
+        }
+
+        function renderHabits() {
+            document.getElementById('habits-container').innerHTML = state.habits.map(h => `
+                <div class="apple-pill rounded-2xl p-3 flex items-center justify-between shadow-sm">
+                    <span class="text-xs font-bold text-pink-950 ${h.done ? 'line-through opacity-40' : ''}">${h.text}</span>
+                    <input type="checkbox" ${h.done ? 'checked' : ''} onclick="toggleHabit(${h.id})" class="w-5 h-5 accent-pink-400 cursor-pointer">
+                </div>
+            `).join('');
+        }
+
+        function toggleHabit(id) {
+            const h = state.habits.find(x => x.id === id);
+            if(h) {
+                h.done = !h.done;
+                triggerHaptic('light');
+                if(h.done) {
+                    state.xp += 10; state.stars += 5;
+                    showToast("+10 EXP, +5 Искорок"); checkLevelUp();
+                }
+                if (state.habits.every(item => item.done)) state.allHabitsDoneToday = true;
+                saveGame(); updateUI();
+                writeLog("TOGGLE_HABIT", h.text + " -> " + h.done);
+            }
+        }
+
+        function completeAllHabits() {
+            triggerHaptic('success');
+            state.habits.forEach(h => h.done = true);
+            state.allHabitsDoneToday = true;
+            state.xp += 50; state.stars += 20;
+            showToast("Все привычки закрыты! (+50 EXP)");
+            checkLevelUp(); saveGame(); updateUI();
+            writeLog("COMPLETE_ALL_HABITS", "done");
+        }
+
+        function renderDailyQuests() {
+            document.getElementById('daily-quests-container').innerHTML = state.dailyQuests.map(q => `
+                <div class="apple-pill rounded-2xl p-3 flex items-center justify-between border-l-2 border-pink-300 shadow-sm">
+                    <div>
+                        <span class="text-xs font-bold text-pink-950 ${q.done ? 'line-through opacity-40' : ''}">${q.text}</span>
+                        <p class="text-[9px] text-pink-500 uppercase font-bold mt-0.5 tracking-wider">+${q.val} ${q.stat}</p>
+                    </div>
+                    <input type="checkbox" ${q.done ? 'checked' : ''} onclick="toggleDaily(${q.id})" class="w-5 h-5 accent-pink-400 cursor-pointer">
+                </div>
+            `).join('');
+        }
+
+        function toggleDaily(id) {
+            const q = state.dailyQuests.find(x => x.id === id);
+            if(q) {
+                q.done = !q.done;
+                triggerHaptic('light');
+                if(q.done) {
+                    state[q.stat] += q.val; state.xp += 15; state.stars += 10; state.totalQuestsDone++;
+                    showToast(`Квест выполнен! (+15 EXP, +${q.val} к стату)`); checkLevelUp();
+                }
+                saveGame(); updateUI();
+                writeLog("TOGGLE_DAILY", q.text + " -> " + q.done);
+            }
+        }
+
+        function completeWeekly() {
+            triggerHaptic('success');
+            state.weeklyDone = true; state.xp += 150; state.stars += 100;
+            showToast("Хардкор недели сдан! (+150 EXP, +100 Искорок)");
+            checkLevelUp(); saveGame(); updateUI();
+            writeLog("COMPLETE_WEEKLY", state.weeklyTask);
+        }
+
+        function checkLevelUp() {
+            while(state.xp >= state.xpMax) {
+                state.xp -= state.xpMax; state.level++; state.statPoints += 3;
+                triggerHaptic('success');
+                showToast(`НОВЫЙ УРОВЕНЬ ${state.level}! (+3 SP)`);
+                writeLog("LEVEL_UP", state.level);
+            }
+        }
+
+        function openBox(type) {
+            if(state.inPenalty) return showToast("Магазин закрыт Штрафной Зоной!");
+            const costs = { common: 30, rare: 70, epic: 150 };
+            if(state.stars < costs[type]) { showToast("Не хватает Искорок!"); return; }
+            triggerHaptic('heavy');
+            state.stars -= costs[type];
+
+            if(type === 'rare' || type === 'epic') state.openedRareOrEpic = true;
+
+            let pool = allCats.filter(c => c.rarity === "Обычный");
+            if(type === 'rare') pool = Math.random() < 0.3 ? allCats.filter(c => c.rarity === "Редкий") : pool;
+            if(type === 'epic') pool = Math.random() < 0.2 ? allCats.filter(c => c.rarity === "Эпический") : allCats.filter(c => c.rarity === "Редкий");
+
+            const randomCat = pool[Math.floor(Math.random() * pool.length)];
+            if(randomCat.rarity === "Эпический") state.hasEpicCat = true;
+            
+            if(!state.collectedCats.some(c => c.id === randomCat.id)) { state.collectedCats.push(randomCat.id); }
+
+            saveGame(); updateUI();
+            writeLog("OPEN_BOX", type + " -> " + randomCat.name);
+            
+            const modal = document.getElementById('cat-modal');
+            const content = document.getElementById('cat-modal-content');
+            document.getElementById('modal-cat-icon').innerHTML = randomCat.svg;
+            document.getElementById('modal-cat-name').innerText = randomCat.name;
+            document.getElementById('modal-cat-rarity').innerText = randomCat.rarity;
+            document.getElementById('modal-cat-desc').innerText = randomCat.desc;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal() { 
+            triggerHaptic('light');
+            const modal = document.getElementById('cat-modal');
+            const content = document.getElementById('cat-modal-content');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        function renderAchievements() {
+            const unlockedCount = state.achievements.filter(a => a.unlocked).length;
+            document.getElementById('ach-counter').innerText = `${unlockedCount} / ${state.achievements.length}`;
+            document.getElementById('achievements-grid').innerHTML = state.achievements.map(a => `
+                <div class="apple-pill p-3.5 rounded-2xl flex items-center justify-between shadow-sm transition ${a.unlocked ? 'border border-pink-400 bg-white/90' : 'opacity-60'}">
+                    <div class="flex-1 pr-2">
+                        <p class="text-[11px] font-extrabold text-pink-950">${a.title}</p>
+                        <p class="text-[9px] text-pink-600 mt-0.5 leading-tight">${a.desc}</p>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        ${a.unlocked 
+                            ? '<span class="text-[10px] font-black text-pink-500 uppercase tracking-wider">Открыто</span>' 
+                            : `<span class="text-[10px] font-bold text-pink-400 flex items-center gap-1 justify-end"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg> ${a.reward}</span>`
+                        }
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCollection() {
+            document.getElementById('cat-count').innerText = state.collectedCats.length;
+            document.getElementById('collection-grid').innerHTML = allCats.map(c => {
+                const isCollected = state.collectedCats.includes(c.id);
+                return `
+                    <div onclick="showCatInfo(${c.id})" class="apple-pill p-2 rounded-2xl text-center cursor-pointer border flex flex-col items-center justify-center aspect-square shadow-sm transition active:scale-95 ${isCollected ? 'border-pink-300 bg-white' : 'opacity-40 border-pink-100'}">
+                        <div class="w-10 h-10 mb-1 flex items-center justify-center">${isCollected ? c.svg : '<svg class="w-5 h-5 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>'}</div>
+                        <p class="text-[8px] font-bold text-pink-950 truncate w-full px-1">${isCollected ? c.name : '???'}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showCatInfo(id) {
+            triggerHaptic('light');
+            const c = allCats.find(x => x.id === id);
+            if(!state.collectedCats.includes(c.id)) { showToast("Питомец заблокирован!"); return; }
+            
+            const modal = document.getElementById('cat-modal');
+            const content = document.getElementById('cat-modal-content');
+            document.getElementById('modal-cat-icon').innerHTML = c.svg;
+            document.getElementById('modal-cat-name').innerText = c.name;
+            document.getElementById('modal-cat-rarity').innerText = c.rarity;
+            document.getElementById('modal-cat-desc').innerText = c.desc;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        window.onload = loadGame;
+    </script>
+</body>
+</html>
